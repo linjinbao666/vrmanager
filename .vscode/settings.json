@@ -1,0 +1,5 @@
+{
+    "java.configuration.runtimes": [],
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic"
+}

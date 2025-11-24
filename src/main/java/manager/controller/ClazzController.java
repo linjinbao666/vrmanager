@@ -232,10 +232,19 @@ public class ClazzController {
                 double score1 = scores1.stream().filter(score->score.getType().equals(1)).mapToDouble(Score::getScore).sum();//实操总成绩
                 vo2.setScore0(score0);
                 vo2.setScore1(score1);
+
                 vo2.setStudentName(student.getUsername());
                 long operationTimes = scores.stream().collect(Collectors.groupingBy(Score::getOperationTimes)).size();
                 vo2.setOperationTimes(operationTimes);
             }
+            List<Score> scores2 = scoreService.list(new QueryWrapper<Score>().eq("student_sn", student.getSn()).eq("clazz_no", clazzNo).eq("type", 2)); //所有教师评分
+            if(CollUtil.isEmpty(scores2)){
+                vo2.setScore2(0);
+            }else {
+                Double maxScore2 = scores2.stream() .map(Score::getScore).filter(Objects::nonNull) .max(Double::compareTo).orElse(0.0); 
+                vo2.setScore2(maxScore2);
+            }
+
             vo2.setClazzNo(clazzNo);
             vo2List.add(vo2);
         }

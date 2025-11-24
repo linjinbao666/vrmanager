@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -139,6 +140,10 @@ public class ScoreController {
         if (null == bySn) {
             return ResultVo.renderErr().withRemark("学生不存在");
         }
+        
+        if(score.getStudyExperience().length() < 500){
+            return ResultVo.renderErr().withRemark("系统要求学习心得大于500字");
+        }
 
         boolean save = scoreService.save(score);
         return save ? ResultVo.renderOk().withRemark("新增成绩成功") : ResultVo.renderErr().withRemark("新增失败");
@@ -160,7 +165,7 @@ public class ScoreController {
     @ApiOperation("更新成绩")
     @PostMapping("/updateScore")
     public ResultVo<CodeEnum> updateScore(Score score) {
-
+        score.setUpdateDate(LocalDateTime.now());
         if (Strings.isEmpty(score.getStudentSn())) {
             return ResultVo.renderErr().withRemark("请关联学生学号");
         }
@@ -173,6 +178,36 @@ public class ScoreController {
                 .eq("student_sn", score.getStudentSn())
                 .eq("clazz_no", score.getClazzNo())
                 .eq("type", score.getType()));
+        return b ? ResultVo.renderOk().withRemark("更新成绩成功") : ResultVo.renderErr().withRemark("更新成绩失败");
+    }
+
+    @ApiOperation("更新成绩1")
+    @PostMapping("/updateScore2")
+    public ResultVo<CodeEnum> updateScoreById(Score score) {
+        score.setUpdateDate(LocalDateTime.now());
+        if (Strings.isEmpty(score.getStudentSn())) {
+            return ResultVo.renderErr().withRemark("请关联学生学号");
+        }
+        User bySn = userService.getOne(new QueryWrapper<User>().eq("sn", score.getStudentSn()).eq("clazz_no", score.getClazzNo()));
+        if (null == bySn) {
+            return ResultVo.renderErr().withRemark("学生不存在");
+        }
+
+        Score existScore = scoreService.getOne(new QueryWrapper<Score>()
+                .eq("student_sn", score.getStudentSn())
+                .eq("clazz_no", score.getClazzNo())
+                .eq("type", 2));
+        if(null == existScore){
+            existScore = new Score();
+            existScore.setStudentSn(score.getStudentSn());
+            existScore.setClazzNo(score.getClazzNo());
+            existScore.setType(score.getType());
+            existScore.setCreateDate(LocalDateTime.now());
+        }
+
+        existScore.setScore(score.getScore());
+
+        boolean b = scoreService.saveOrUpdate(existScore);
         return b ? ResultVo.renderOk().withRemark("更新成绩成功") : ResultVo.renderErr().withRemark("更新成绩失败");
     }
 

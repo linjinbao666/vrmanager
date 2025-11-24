@@ -12,8 +12,8 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://121.5.240.206:3306/vrmanager?setUnicode=true&characterEncoding=utf8&useAffectedRows=true
-    username: amrom
+    url: jdbc:mysql://121.43.135.175:3306/vrmanager?setUnicode=true&characterEncoding=utf8&useAffectedRows=true
+    username: dev
     password: 369369
   devtools:
     restart:

@@ -27,7 +27,7 @@ public class Score implements Serializable {
 
     private String question;
 
-    private Integer type;  //0理论，1考核
+    private Integer type;  //0理论，1考核 , 2教师评分
 
     private String studentSn;
 
@@ -62,6 +62,10 @@ public class Score implements Serializable {
     private String updater;
 
     private String clazzNo;
+
+    private String studyExperience; //学习心得
+
+    private Integer studyDuration; //学习时长
 
     public String getClazzNo() {
         return clazzNo;
@@ -191,25 +195,34 @@ public class Score implements Serializable {
         this.studentName = studentName;
     }
 
+    public static long getSerialversionuid() {
+        return serialVersionUID;
+    }
+
+    public String getStudyExperience() {
+        return studyExperience;
+    }
+
+    public void setStudyExperience(String studyExperience) {
+        this.studyExperience = studyExperience;
+    }
+
+    public Integer getStudyDuration() {
+        return studyDuration;
+    }
+
+    public void setStudyDuration(Integer studyDuration) {
+        this.studyDuration = studyDuration;
+    }
+
     @Override
     public String toString() {
-        return "Score{" +
-                "id=" + id +
-                ", question='" + question + '\'' +
-                ", type=" + type +
-                ", studentSn='" + studentSn + '\'' +
-                ", studentName='" + studentName + '\'' +
-                ", questionid=" + questionid +
-                ", operationTimes=" + operationTimes +
-                ", progress='" + progress + '\'' +
-                ", remark='" + remark + '\'' +
-                ", score=" + score +
-                ", studentId=" + studentId +
-                ", createDate=" + createDate +
-                ", updateDate=" + updateDate +
-                ", creator='" + creator + '\'' +
-                ", updater='" + updater + '\'' +
-                ", clazzNo='" + clazzNo + '\'' +
-                '}';
+        return "Score [id=" + id + ", question=" + question + ", type=" + type + ", studentSn=" + studentSn
+                + ", studentName=" + studentName + ", questionid=" + questionid + ", operationTimes=" + operationTimes
+                + ", progress=" + progress + ", remark=" + remark + ", score=" + score + ", studentId=" + studentId
+                + ", createDate=" + createDate + ", updateDate=" + updateDate + ", creator=" + creator + ", updater="
+                + updater + ", clazzNo=" + clazzNo + ", studyExperience=" + studyExperience + ", studyDuration="
+                + studyDuration + "]";
     }
+
 }

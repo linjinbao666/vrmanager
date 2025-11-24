@@ -132,6 +132,29 @@
 				var upload = layui.upload;
 				var element = layui.element;
 				var util = layui.util;
+				function addSummarySection(data) {
+				var summaryHtml = `
+					<div style="background: #f2f2f2; padding: 15px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #e6e6e6;">
+						<div style="display: flex; gap: 20px;">
+							<div style="flex: 1;">
+								<div style="font-weight: bold; color: #333; margin-bottom: 8px;">学习心得</div>
+								<div style="background: white; padding: 12px; border-radius: 4px; min-height: 80px; line-height: 1.5;">
+									${data.studyExperience || '该学生暂无学习心得'}
+								</div>
+							</div>
+							<div style="width: 150px;">
+								<div style="font-weight: bold; color: #333; margin-bottom: 8px;">教师评分</div>
+								<div style="background: white; padding: 12px; border-radius: 4px; text-align: center; font-size: 20px; font-weight: bold; color: #ff4d4f;">
+									${data.score2 || 0}
+								</div>
+								<div style="text-align: center; color: #666; margin-top: 5px;">满分 100</div>
+							</div>
+						</div>
+					</div>
+				`;
+				
+				$('#transfer').after(summaryHtml);
+			}
 				table.set({
 				  headers: { 
 				    'admin-token': localStorage.getItem("jwt")
@@ -146,14 +169,16 @@
 							type: 1,
 							title: '成绩详情',
 							shadeClose: true,
-							area: ['70%', '90%'],
+							area: ['70%', '95%'],
 							content: $('#sdf'),
 							success: function() {
 								document.getElementById('studentName').innerText = data.studentName
-								document.getElementById('studentScore').innerText = '总分: '+ add(mul(data.score0, 0.4), mul(data.score1, 0.6)) + '    学号: ' + data.sn
+								document.getElementById('studentScore').innerText = '总分: '+ add(mul(data.score0, 1), mul(data.score2, 1))
+								document.getElementById('studentSn').innerText = '学号' + data.sn
+								addSummarySection(data);
 								table.render({
 									elem: '#transfer' ,
-									height: 'full-230',
+									height: 'full-400',
 									url: "/score/studentScore?page=1&limit=10&type=0&sn=" + data.sn +"&clazzNo="+data.clazzNo,
 									page: true,
 									cols: [
@@ -169,13 +194,20 @@
 											field: 'score',
 											align: 'center',
 											title: '考核分数'
-										},{
-											field: 'createDate',
+										},
+										// {
+										// 	field: 'createDate',
+										// 	align: 'center',
+										// 	title: '考核时间',
+										// 	templet : "<div>{{layui.util.toDateString(d.createDate, 'yyyy-MM-dd HH:mm:ss')}}</div>"
+										// }
+										{
+											field: 'studyDuration',
 											align: 'center',
-											title: '考核时间',
-											templet : "<div>{{layui.util.toDateString(d.createDate, 'yyyy-MM-dd HH:mm:ss')}}</div>"
-										}]
-									]
+											title: '学习时长'
+										}
+										]
+									],
 								});
 								table.render({
 									elem: '#transfer2' ,
@@ -385,6 +417,77 @@
 					}
 				});
 
+				// 监听单元格编辑
+				table.on('edit(clazzScoreTable)', function(obj){
+					var value = obj.value;
+					var field = obj.field;
+					var data = obj.data;
+					
+					// 输入验证
+					if (value === '' || value === null) {
+						layer.msg('分数不能为空');
+						obj.update({ score2: data.score2 || '0' });
+						return;
+					}
+					
+					// 验证数字格式
+					var score = parseFloat(value);
+					if (isNaN(score)) {
+						layer.msg('请输入有效的数字');
+						obj.update({ score2: data.score2 || '0' });
+						return;
+					}
+					
+					// 验证分数范围
+					if (score < 0 || score > 100) {
+						layer.msg('分数范围应为0-100');
+						obj.update({ score2: data.score2 || '0' });
+						return;
+					}
+					
+					// 验证小数位数
+					if ((value.toString().split('.')[1] || '').length > 2) {
+						layer.msg('最多支持两位小数');
+						obj.update({ score2: data.score2 || '0' });
+						return;
+					}
+					
+					var index = layer.load(1);
+					
+					$.ajax({
+						url: "/score/updateScore2",
+						type: "POST",
+						dataType: "json",
+						data: {
+							sn: data.sn,
+							clazzNo: data.clazzNo,
+							studentSn: data.sn, 
+							studentName: data.studentName,
+							score: score,
+							type: 2,
+						},
+						beforeSend: function(request) {
+							request.setRequestHeader("admin-token", localStorage.getItem("jwt"));
+						},
+						success: function(res) {
+							layer.close(index);
+							if (res.code === 200) {
+								layer.msg('评分更新成功');
+								obj.update({ score2: score });
+							} else {
+								layer.msg(res.msg || '评分更新失败');
+								obj.update({ score2: data.score2 || '0' });
+							}
+							table.reload('clazzScoreTable-' + data.clazzNo);
+						},
+						error: function(xhr, status, error) {
+							layer.close(index);
+							layer.msg('网络错误，请重试');
+							obj.update({ score2: data.score2 || '0' });
+						}
+					});
+				});
+
 				//监听行工具事件
 				table.on('tool(clazzTable)', function(obj) {
 					var data = obj.data;
@@ -533,15 +636,41 @@
 									field: 'score0',
 									title: '理论考核总分',
 									align: 'center'
-								}, {
-									field: 'score1',
-									title: '实验考核总分',
-									align: 'center'
-								},{
-									field: 'operationTimes',
-									title: '考试次数',
-									align: 'center'
-								}, {
+								},
+								// {
+								// 	field: 'score1',
+								// 	title: '实验考核总分',
+								// 	align: 'center'
+								// }
+								{
+									field: 'score2',
+									title: '教师评分',
+									align: 'center',
+									edit: 'text',  // 添加这一行，启用单元格编辑
+									templet: function(d) {
+										return d.score2 || '0';
+									}
+								},
+								// {
+								// 	field: 'operationTimes',
+								// 	title: '考试次数',
+								// 	align: 'center'
+								// }, 
+								{
+									field: '',
+									title: '考核总分',
+									align: 'center',
+									templet: function(d) {
+										var score0 = parseFloat(d.score0) || 0;
+										var score2 = parseFloat(d.score2) || 0;
+										var total = score0 + score2;
+										
+										var color = total >= 60 ? '#52c41a' : '#ff4d4f'; 
+										
+										return '<span style="color: ' + color + '; font-weight: bold;">' + total.toFixed(2) + '</span>';
+									}
+								}, 
+								{
 									title: '考核详情',
 									align: 'center',
 									event: 'scoreDetail',
@@ -585,28 +714,27 @@
 		</script>
 		
 		<!-- 成绩详情弹框 -->
-		<div id="sdf" class="layui-container" style="width: 98%; display: none;" >
-			<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+		<div id="sdf" class="layui-container" style="width: 98%; display: none; overflow: hidden;" >
+			<div class="layui-tab layui-tab-brief" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+				<ul class="layui-tab-title layui-row" style="min-height: 70px; align-items: center; overflow: hidden;">
+					<li class="layui-this layui-col-md2">理论考核</li>
+					<!-- <li class="layui-col-md2">实操考核</li> -->
+					<div class="layui-col-md2 layui-col-md-offset6" style="float: right; margin-right: 20px;">
+						<div class="layui-text pull-right" align="right" id="studentName"></div>
+						<div class="layui-text pull-right" align="right" id="studentScore"></div>
+						<div class="layui-text pull-right" align="right" id="studentSn"></div>
+					</div>
+				</ul>
 
-			  <ul class="layui-tab-title layui-row">
-				<li class="layui-this layui-col-md2">理论考核</li>
-				<li class="layui-col-md2">实操考核</li>
-				<div class="layui-col-md2 layui-col-md-offset6">
-					<div class="layui-text pull-right" align="right" id="studentName"></div>
-					<div class="layui-text pull-right" align="right" id="studentScore"></div>
-				</div>
-			  </ul>
-
-			  <div class="layui-tab-content" style="height: 100px;">
-			    <div class="layui-tab-item layui-show">
-					<table id="transfer" lay-filter="transfer" class=""></table>
-				</div>
-				<div class="layui-tab-item layui-show">
+				<div class="layui-tab-content" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+					<div class="layui-tab-item layui-show" style="flex: 1; display: flex; flex-direction: column;">
+						<table id="transfer" lay-filter="transfer" style="flex: 1;"></table>
+					</div>
+					<!-- <div class="layui-tab-item layui-show">
 					<table id="transfer2" lay-filter="transfer2" class=""></table>
+					</div> -->
 				</div>
-			  </div>
 			</div> 
-			
 		</div>
 		
 		<!-- 学生管理弹框 -->

@@ -118,7 +118,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResultVo deleteOne(@PathVariable(value = "id")Long id){
+    public ResultVo<?> deleteOne(@PathVariable(value = "id")Long id){
         User byId = userService.getById(id);
         if (null == byId){
             return ResultVo.renderErr().withRemark("删除失败，记录不存在");

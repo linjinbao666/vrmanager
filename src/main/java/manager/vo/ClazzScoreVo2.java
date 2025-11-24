@@ -13,7 +13,8 @@ public class ClazzScoreVo2 implements Serializable {
 
     private String name;		        //班级名称
     private double score0;              //理论考核
-    private double score1;              //理论考核
+    private double score1;              //实验考核
+    private double score2;              //教师评分
     private Integer type;               //0是理论考核，1是实验考核
     private String sn;                  //学号
     private String studentName;         //学生姓名
