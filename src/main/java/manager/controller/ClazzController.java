@@ -241,8 +241,13 @@ public class ClazzController {
             if(CollUtil.isEmpty(scores2)){
                 vo2.setScore2(0);
             }else {
-                Double maxScore2 = scores2.stream() .map(Score::getScore).filter(Objects::nonNull) .max(Double::compareTo).orElse(0.0); 
-                vo2.setScore2(maxScore2);
+                Score maxScoreObj = scores2.stream()
+                    .filter(score -> score.getScore() != null)
+                    .max(Comparator.comparing(Score::getScore))
+                    .orElse(null);
+                // Double maxScore2 = scores2.stream().map(Score::getScore).filter(Objects::nonNull).max(Double::compareTo).orElse(0.0); 
+                vo2.setScore2(maxScoreObj.getScore());
+                vo2.setStudyExperience(maxScoreObj.getStudyExperience());
             }
 
             vo2.setClazzNo(clazzNo);

@@ -133,39 +133,58 @@
 				var element = layui.element;
 				var util = layui.util;
 				function addSummarySection(data) {
-				var summaryHtml = `
-					<div style="background: #f2f2f2; padding: 15px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #e6e6e6;">
-						<div style="display: flex; gap: 20px;">
-							<div style="flex: 1;">
-								<div style="font-weight: bold; color: #333; margin-bottom: 8px;">学习心得</div>
-								<div style="background: white; padding: 12px; border-radius: 4px; min-height: 80px; line-height: 1.5;">
-									${data.studyExperience || '该学生暂无学习心得'}
+					var summaryHtml = `
+						<div style="background: #f2f2f2; padding: 15px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #e6e6e6;">
+							<div style="display: flex; gap: 20px;">
+								<div style="flex: 1;">
+									<div style="font-weight: bold; color: #333; margin-bottom: 8px;">学习心得</div>
+									<div style="background: white; padding: 12px; border-radius: 4px; min-height: 80px; line-height: 1.5;">
+										${data.studyExperience || '该学生暂无学习心得'}
+									</div>
+								</div>
+								<div style="width: 150px;">
+									<div style="font-weight: bold; color: #333; margin-bottom: 8px;">教师评分</div>
+									<div style="
+									background: white; 
+									padding: 12px; 
+									border-radius: 4px; 
+									min-height: 80px; 
+									display: flex; 
+									align-items: center; 
+									justify-content: center; 
+									font-size: 40px; 
+									font-weight: bold; 
+									color: #ff4d4f;
+								">
+									${data.score2 || 0}
+								</div>
+									
 								</div>
 							</div>
-							<div style="width: 150px;">
-								<div style="font-weight: bold; color: #333; margin-bottom: 8px;">教师评分</div>
-								<div style="
-								background: white; 
-								padding: 12px; 
-								border-radius: 4px; 
-								min-height: 80px; 
-								display: flex; 
-								align-items: center; 
-								justify-content: center; 
-								font-size: 40px; 
-								font-weight: bold; 
-								color: #ff4d4f;
-							">
-								${data.score2 || 0}
-							</div>
-								
-							</div>
 						</div>
-					</div>
-				`;
-				
-				$('#transfer').after(summaryHtml);
-			}
+					`;
+					
+					$('#transfer').after(summaryHtml);
+				}
+				function showStudyExperienceModal(data) {
+    				var studyExperience = data.studyExperience || '该学生暂无学习经历';
+    
+					layer.open({
+						type: 1,
+						title: '学习经历 - ' + data.studentName,
+						area: ['600px', '400px'],
+						shadeClose: true,
+						content: `
+							<div style="padding: 20px; height: 300px; overflow-y: auto; line-height: 1.6;">
+								${studyExperience}
+							</div>
+						`,
+						btn: ['关闭'],
+						yes: function(index) {
+							layer.close(index);
+						}
+					});
+				}
 				table.set({
 				  headers: { 
 				    'admin-token': localStorage.getItem("jwt")
@@ -175,6 +194,9 @@
 				table.on('tool(clazzScoreTable)', function(obj) {
 					var data = obj.data;
 					console.log(data)
+					if (obj.event === 'viewStudyExperience') {
+						showStudyExperienceModal(data);
+					}
 					if (obj.event === 'scoreDetail') {
 						layer.open({
 							type: 1,
@@ -224,38 +246,38 @@
 										]
 									],
 								});
-								table.render({
-									elem: '#transfer2' ,
-									height: 'full-230',
-									url: "/score/studentScore?page=1&limit=25&type=1&sn=" + data.sn +"&clazzNo="+data.clazzNo,
-									where: {
-									},
-									page: true,
-									cols: [
-										[{
-											field: 'id',
-											align: 'center',
-											title: '题目序号'
-										},{
-											field: 'question',
-											align: 'center',
-											title: '题目内容'
-										}, {
-											field: 'score',
-											align: 'center',
-											title: '考核分数'
-										},{
-											field: 'operationTimes',
-											align: 'center',
-											title: '操作次数'
-										},{
-											field: 'createDate',
-											align: 'center',
-											title: '考核时间',
-											templet : "<div>{{layui.util.toDateString(d.createDate, 'yyyy-MM-dd HH:mm:ss')}}</div>"
-										}]
-									]
-								});
+								// table.render({
+								// 	elem: '#transfer2' ,
+								// 	height: 'full-230',
+								// 	url: "/score/studentScore?page=1&limit=25&type=1&sn=" + data.sn +"&clazzNo="+data.clazzNo,
+								// 	where: {
+								// 	},
+								// 	page: true,
+								// 	cols: [
+								// 		[{
+								// 			field: 'id',
+								// 			align: 'center',
+								// 			title: '题目序号'
+								// 		},{
+								// 			field: 'question',
+								// 			align: 'center',
+								// 			title: '题目内容'
+								// 		}, {
+								// 			field: 'score',
+								// 			align: 'center',
+								// 			title: '考核分数'
+								// 		},{
+								// 			field: 'operationTimes',
+								// 			align: 'center',
+								// 			title: '操作次数'
+								// 		},{
+								// 			field: 'createDate',
+								// 			align: 'center',
+								// 			title: '考核时间',
+								// 			templet : "<div>{{layui.util.toDateString(d.createDate, 'yyyy-MM-dd HH:mm:ss')}}</div>"
+								// 		}]
+								// 	]
+								// });
 							}
 						})
 					}
@@ -661,9 +683,19 @@
 									field: 'score2',
 									title: '教师评分',
 									align: 'center',
-									edit: 'text',  // 添加这一行，启用单元格编辑
+									edit: 'text',
 									templet: function(d) {
-										return d.score2 || '0';
+										var score = d.score2 || '0';
+										return `
+											<div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+												<span style="min-width: 30px;">${score}</span>
+												<a class="layui-btn layui-btn-xs layui-btn-normal" 
+												lay-event="viewStudyExperience"
+												title="查看详情">
+													<i class="layui-icon">&#xe615;</i>
+												</a>
+											</div>
+										`;
 									}
 								},
 								// {

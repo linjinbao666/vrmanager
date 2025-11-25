@@ -132,8 +132,8 @@ public class ScoreController {
     @PostMapping("/")
     public ResultVo<CodeEnum> addClazz(Score score) {
 
-        if (score.getType() != 1 && score.getType() != 0) {
-            return ResultVo.renderErr().withRemark("类型可选值为0理论，1考核");
+        if (score.getType() != 1 && score.getType() != 0 && score.getType() != 2) {
+            return ResultVo.renderErr().withRemark("类型可选值为0理论，1考核, 2教师评分");
         }
 
         User bySn = userService.getOne(new QueryWrapper<User>().eq("sn", score.getStudentSn()).eq("clazz_no", score.getClazzNo()));

@@ -15,7 +15,7 @@ public class ClazzScoreVo2 implements Serializable {
     private double score0;              //理论考核
     private double score1;              //实验考核
     private double score2;              //教师评分
-    private Integer type;               //0是理论考核，1是实验考核
+    private Integer type;               //0是理论考核，1是实验考核, 2是教师评分
     private String sn;                  //学号
     private String studentName;         //学生姓名
     private Long operationTimes;        //操作次数
@@ -23,4 +23,6 @@ public class ClazzScoreVo2 implements Serializable {
     private LocalDateTime createDate;    //创建日期
     private LocalDateTime updateDate;    //修改者
     private String clazzNo; //班级编号
+
+    private String studyExperience; //学习心得
 }
